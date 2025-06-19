@@ -18,7 +18,7 @@ public class MainMenuScreen extends ScreenAdapter {
 
     public MainMenuScreen(VNGame g) {
         this.game = g;
-        this.font = g.uiFont;
+        this.font = g.bodyFont;
     }
 
     @Override

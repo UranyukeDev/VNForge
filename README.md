@@ -1,35 +1,72 @@
-# VNForge
+# VNForge – Visual Novel Engine (libGDX / Java)
 
-A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://github.com/libgdx/gdx-liftoff).
+A plug‑and‑play visual‑novel (VN) engine built on **libGDX 1.12**. Still in development.
 
-This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
+---
 
-## Platforms
+## Core features
 
-- `core`: Main module with the application logic shared by all platforms.
-- `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
-- `android`: Android mobile platform. Needs Android SDK.
+| Capability | Details |
+|------------|---------|
+| **Dialogue flow** | Typewriter text with per‑line speed (`textSpeed`), tap/space to advance. |
+| **Speaker name** | Rendered in a *dedicated, larger* font; colour sticks until the next `color` override. |
+| **Append or clear** | `"append": true` continues the current paragraph on the **same line**; omit or set to `false` to clear. |
+| **Scenes / backgrounds** | Each scene specifies one background image (`gfx/backgrounds/…`). The engine swaps textures automatically and disposes the old one. |
+| **Config‑driven fonts** | `assets/config/config.json` picks body/speaker TTFs, sizes, default name colour, and type speed, no recompilation. |
 
-## Gradle
+---
 
-This project uses [Gradle](https://gradle.org/) to manage dependencies.
-The Gradle wrapper was included, so you can run Gradle tasks using `gradlew.bat` or `./gradlew` commands.
-Useful Gradle tasks and flags:
+## Configuration (`assets/config/config.json`)
 
-- `--continue`: when using this flag, errors will not stop the tasks from running.
-- `--daemon`: thanks to this flag, Gradle daemon will be used to run chosen tasks.
-- `--offline`: when using this flag, cached dependency archives will be used.
-- `--refresh-dependencies`: this flag forces validation of all dependencies. Useful for snapshot versions.
-- `android:lint`: performs Android project validation.
-- `build`: builds sources and archives of every project.
-- `cleanEclipse`: removes Eclipse project data.
-- `cleanIdea`: removes IntelliJ project data.
-- `clean`: removes `build` folders, which store compiled classes and built archives.
-- `eclipse`: generates Eclipse project data.
-- `idea`: generates IntelliJ project data.
-- `lwjgl3:jar`: builds application's runnable jar, which can be found at `lwjgl3/build/libs`.
-- `lwjgl3:run`: starts the application.
-- `test`: runs unit tests (if any).
+```jsonc
+{
+  "font"           : "fonts/Roboto-Medium.ttf",   // dialogue text
+  "fontSize"       : 26,
+  "speakerFont"    : "fonts/Roboto-Bold.ttf",    // speaker label
+  "speakerFontSize": 32,
+  "nameColor"      : "#ffc000",                  // default label colour
+  "textSpeed"      : 40                           // letters per second
+}
+```
 
-Note that most tasks that are not specific to a single project can be run with `name:` prefix, where the `name` should be replaced with the ID of a specific project.
-For example, `core:clean` removes `build` folder only from the `core` project.
+---
+
+## Writing scripts (`assets/scripts/*.json`)
+
+Minimal schema (see `DialogueModels.java`):
+
+```jsonc
+{
+  "scenes": [
+    {
+      "background": "easterneurope.png",
+      "lines": [
+        { "append": true, "speaker": "Alice", "text": "Welcome to VNForge!" },
+        { "append": false, "speaker": "Alice", "text": "Let's build something great." },
+        { "color": "#66ccff", "speaker": "Bob", "text": "I'm in!" },
+        { "text": "They shook hands." }
+      ]
+    }
+  ]
+}
+```
+
+Field | Type | Purpose
+------|------|--------
+`background` | *String* | Filename of scene BG (relative to `gfx/backgrounds`).
+`speaker`    | *String?* | Name tag. Omit → narration line.
+`color`      | *String?* | Hex colour for **this** speaker label *and all following* until changed.
+`text`       | *String* | Dialogue content.
+`append`     | *Boolean?* | `true` → continue on same paragraph; set to `false` to stop.
+
+---
+
+## To be implemented
+
+* **Choices / branching:** add `choices` array to `Line` and let `DialogueScreen` push a `ChoiceScreen`.
+* **Save & load:** serialise `sceneIdx`, `lineIdx`, `bufferText`, colours.
+* **CG gallery / music:** preload additional assets in `VNGame.assets`.
+* **Auto‑mode / skip:** vary text reveal speed, auto‑advance timer.
+* **Transitions:** 
+...
+

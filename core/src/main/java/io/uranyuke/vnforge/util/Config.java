@@ -4,29 +4,47 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.Json;
+import com.badlogic.gdx.graphics.Color;
 
 public class Config {
-    public String font = "fonts/default.ttf";
-    public int fontSize = 28;
-    public String nameColor = "#ffc000";
-    public float textSpeed = 30f;
 
-    /** load config.json (or fall back to default values) */
+    /* ---------- JSON-driven fields ---------- */
+    public String font             = "fonts/Roboto-Medium.ttf";
+    public int    fontSize         = 26;
+
+    public String speakerFont      = "fonts/Roboto-Bold.ttf";
+    public int    speakerFontSize  = 32;
+
+    public String nameColor        = "#ffc000";
+    public float  textSpeed        = 40f;
+
     public static Config load(FileHandle file) {
-        if (!file.exists()) return new Config();
-        return new Json().fromJson(Config.class, file);
+        return file.exists()
+             ? new Json().fromJson(Config.class, file)
+             : new Config();
     }
 
-    /** build a BitmapFont with current settings */
+    public BitmapFont createBodyFont()     { return build(font,        fontSize); }
+    public BitmapFont createSpeakerFont()  { return build(speakerFont, speakerFontSize); }
+
     public static BitmapFont generateFont(Config cfg) {
-        FreeTypeFontGenerator gen = new FreeTypeFontGenerator(Gdx.files.internal(cfg.font));
-        FreeTypeFontGenerator.FreeTypeFontParameter p = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        p.size  = cfg.fontSize;
+        return cfg.createBodyFont();
+    }
+    public static BitmapFont generateSpeakerFont(Config cfg) {
+        return cfg.createSpeakerFont();
+    }
+
+    /* ---------- private factory ---------- */
+    private static BitmapFont build(String path, int size) {
+        FreeTypeFontGenerator gen =
+            new FreeTypeFontGenerator(Gdx.files.internal(path));
+        FreeTypeFontGenerator.FreeTypeFontParameter p =
+            new FreeTypeFontGenerator.FreeTypeFontParameter();
+        p.size  = size;
         p.color = Color.WHITE;
-        BitmapFont font = gen.generateFont(p);
+        BitmapFont f = gen.generateFont(p);
         gen.dispose();
-        return font;
+        return f;
     }
 }

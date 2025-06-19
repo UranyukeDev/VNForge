@@ -1,6 +1,8 @@
 {
-  "font"     : "fonts/Roboto-Medium.ttf",
-  "fontSize" : 20,
-  "nameColor": "#ffc000",
-  "textSpeed": 40
+  "font"           : "fonts/Roboto-Medium.ttf",
+  "fontSize"       : 25,
+  "speakerFont"    : "fonts/Roboto-Bold.ttf",
+  "speakerFontSize": 30,
+  "nameColor"      : "#ffc000",
+  "textSpeed"      : 40
 }

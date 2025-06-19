@@ -15,32 +15,38 @@ import io.uranyuke.vnforge.util.ScriptLoader;
 
 public class DialogueScreen extends ScreenAdapter {
 
-    // ---------- constants ----------
-    private static final float MARGIN = 30f;   // inner padding in px
+    private static final float MARGIN        = 30f;   // padding inside textbox
+    private static final float NAME_TEXT_GAP = 36f;   // gap under speaker name
 
-    // ---------- engine ----------
-    private final VNGame game;
+    private final VNGame      game;
     private final SpriteBatch batch = new SpriteBatch();
-    private final BitmapFont font;
+    private final BitmapFont  bodyFont;
+    private final BitmapFont  nameFont;
 
-    // ---------- data ----------
-    private final Script script;
-    private int sceneIdx = 0;
-    private int lineIdx  = 0;
-    private float elapsed = 0f;     // seconds spent on current line
-    private String currentText = "";
-
-    // ---------- graphics ----------
     private Texture background;
     private final Texture textbox;
-    private float boxX, boxY, boxW, boxH;      // textbox placement
+
+    /*  textbox placement (re-computed on resize)  */
+    private float boxX, boxY, boxW, boxH;
+
+    private final Script script;
+    private int   sceneIdx  = 0;
+    private int   lineIdx   = 0;
+    private float elapsed   = 0f;       // seconds spent on current line
+
+    private String bufferText = "";
+    private String currentSegment = "";
+
+    private Color currentNameColor;
 
     public DialogueScreen(VNGame g, String scriptFile) {
         this.game  = g;
-        this.font  = g.uiFont;
+        this.bodyFont = game.bodyFont;
+        this.nameFont = game.nameFont;
+
         this.script = ScriptLoader.load(scriptFile);
 
-        // UI skin
+        /* UI skin ----------------------------------------------------- */
         textbox = game.assets.get("gfx/ui/textbox.png", Texture.class);
         boxW = textbox.getWidth();
         boxH = textbox.getHeight();
@@ -49,102 +55,114 @@ public class DialogueScreen extends ScreenAdapter {
         loadScene();
     }
 
-    // ------------------------------------------------------------------
-    // helpers
-    // ------------------------------------------------------------------
     private void calculateBoxPosition() {
-        boxX = (Gdx.graphics.getWidth() - boxW) / 2f; // centre-horiz
-        boxY = 0f;                                    // flush bottom
+        boxX = (Gdx.graphics.getWidth() - boxW) / 2f; // centred horizontally
+        boxY = 0f;                                    // flush with bottom
     }
 
-    /** pull the next scene's background and reset counters */
     private void loadScene() {
-        Scene sc = script.scenes.get(sceneIdx);
-
+        /* dispose previous background (avoid leaking GPU memory) */
         if (background != null) background.dispose();
-        background = new Texture(Gdx.files.internal("gfx/backgrounds/" + sc.background));
 
-        lineIdx  = 0;
-        elapsed  = 0f;
-        currentText = "";
+        Scene sc = script.scenes.get(sceneIdx);
+        background = new Texture(
+                Gdx.files.internal("gfx/backgrounds/" + sc.background));
+
+        lineIdx         = 0;
+        elapsed         = 0f;
+        bufferText      = "";
+        currentSegment  = "";
+
+        currentNameColor = Color.valueOf(game.config.nameColor); // reset colour
     }
 
     @Override
     public void resize(int width, int height) {
-        calculateBoxPosition();   // stay centred on window resize
+        calculateBoxPosition();      // keep textbox centred
     }
 
     @Override
     public void render(float delta) {
         handleInput();
 
-        // progress typewriter
         Scene sc = script.scenes.get(sceneIdx);
         Line  ln = sc.lines.get(lineIdx);
-        elapsed += delta;
-        int lettersVisible = Math.min(ln.text.length(), (int) (elapsed * game.config.textSpeed));
-        currentText = ln.text.substring(0, lettersVisible);
 
-        // draw ----------------------------------------------------------------
+        elapsed += delta;
+        int visibleChars = Math.min(
+                ln.text.length(),
+                (int) (elapsed * game.config.textSpeed));
+        currentSegment = ln.text.substring(0, visibleChars);
+
+        /* update sticky speaker colour if this line provides one */
+        if (ln.color != null) {
+            currentNameColor = Color.valueOf(ln.color);
+        }
+
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
 
-        // background
-        batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        /* background stretched to window */
+        batch.draw(background, 0, 0,
+                   Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-        // textbox
+        /* textbox */
         batch.draw(textbox, boxX, boxY);
 
-        // speaker (if any)
+        /* speaker label */
+        float nameY = boxY + boxH - MARGIN;
         if (ln.speaker != null) {
-            font.setColor(Color.valueOf(ln.color != null ? ln.color : game.config.nameColor));
-            font.draw(batch, ln.speaker, boxX + MARGIN, boxY + boxH - MARGIN);
+            nameFont.setColor(currentNameColor);
+            nameFont.draw(batch, ln.speaker,
+                          boxX + MARGIN, nameY);
         }
 
-        // main text
-        font.setColor(Color.WHITE);
-        font.draw(batch, currentText,
-                  boxX + MARGIN,              // x
-                  boxY + boxH - MARGIN * 2,   // y
-                  boxW - MARGIN * 2,          // wrap width
-                  Align.left,
-                  true);
+        /* dialogue body */
+        float textY = nameY - NAME_TEXT_GAP;
+        bodyFont.setColor(Color.WHITE);
+        bodyFont.draw(batch, bufferText + currentSegment,
+                      boxX + MARGIN, textY,
+                      boxW - MARGIN * 2,
+                      Align.left, true);
 
         batch.end();
     }
 
-    // ------------------------------------------------------------------
-    // user input
-    // ------------------------------------------------------------------
     private void handleInput() {
-        boolean nextRequested = Gdx.input.justTouched()
-                             || Gdx.input.isKeyJustPressed(Keys.SPACE);
-
-        if (!nextRequested) return;
+        boolean advance = Gdx.input.justTouched()
+                        || Gdx.input.isKeyJustPressed(Keys.SPACE);
+        if (!advance) return;
 
         Scene sc = script.scenes.get(sceneIdx);
         Line  ln = sc.lines.get(lineIdx);
 
-        // fast-forward if text still rolling
-        if (currentText.length() < ln.text.length()) {
+        /* fast-forward current line if still typing */
+        if (currentSegment.length() < ln.text.length()) {
             elapsed = ln.text.length() / game.config.textSpeed;
             return;
         }
 
-        // otherwise proceed
+        /* line finished — decide whether to append or clear */
+        if (ln.append) {
+            bufferText += ln.text + " ";
+        } else {
+            bufferText = "";
+        }
+
+        /* move to next line / scene / main menu */
         lineIdx++;
         if (lineIdx >= sc.lines.size()) {
             sceneIdx++;
             if (sceneIdx >= script.scenes.size()) {
-                game.setScreen(new MainMenuScreen(game));   // back to menu
+                game.setScreen(new MainMenuScreen(game)); // VN finished
                 return;
             }
             loadScene();
         } else {
             elapsed = 0f;
-            currentText = "";
+            currentSegment = "";
         }
     }
 
@@ -154,3 +172,4 @@ public class DialogueScreen extends ScreenAdapter {
         if (background != null) background.dispose();
     }
 }
+

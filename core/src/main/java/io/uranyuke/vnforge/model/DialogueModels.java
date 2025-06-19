@@ -5,10 +5,11 @@ import java.util.List;
 public class DialogueModels {
 
     /** one sentence in the script */
-    public static class Line {
-        public String speaker; // null = narration
-        public String color;   // optional hex, overrides default
-        public String text;
+        public static class Line {
+        public String  speaker;   // null = narration
+        public String  color;     // optional hex
+        public String  text;
+        public boolean append = false;
     }
 
     /** a group of lines that share one background */

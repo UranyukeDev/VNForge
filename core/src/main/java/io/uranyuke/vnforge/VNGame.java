@@ -5,7 +5,6 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 
 import io.uranyuke.vnforge.util.Config;
 import io.uranyuke.vnforge.screens.MainMenuScreen;
@@ -13,25 +12,20 @@ import io.uranyuke.vnforge.screens.MainMenuScreen;
 public class VNGame extends Game {
 
     public AssetManager assets;
-    public Config config;
-    public BitmapFont uiFont;
+    public Config       config;
+    public BitmapFont   bodyFont;
+    public BitmapFont   nameFont;
 
     @Override
     public void create() {
         assets = new AssetManager();
+        config = Config.load(Gdx.files.internal("config/config.json"));
 
-        // ---------- load global config ----------
-        FileHandle cfgFile = Gdx.files.internal("config/config.json");
-        config = Config.load(cfgFile);
+        bodyFont = Config.generateFont(config);          // dialogue text
+        nameFont = Config.generateSpeakerFont(config);   // speaker labels
 
-        // ---------- dynamic font ----------
-        uiFont = Config.generateFont(config);
-
-        // ---------- pre-load basic UI things ----------
         assets.load("gfx/ui/textbox.png", Texture.class);
         assets.finishLoading();
-
-        // ---------- first screen ----------
         setScreen(new MainMenuScreen(this));
     }
 
@@ -39,7 +33,8 @@ public class VNGame extends Game {
     public void dispose() {
         super.dispose();
         assets.dispose();
-        uiFont.dispose();
+        bodyFont.dispose();
+        nameFont.dispose();
     }
 }
 

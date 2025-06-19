@@ -3,18 +3,10 @@
     {
       "background": "easterneurope.png",
       "lines": [
-        {
-          "speaker": "George",
-          "color": "#ffc000",
-          "text": "Well, I usually drink for business rather than pleasure."
-        },
-        {
-          "speaker": "George",
-          "text": "It's pretty hard to do business in Japan without it."
-        },
-        {
-          "text": "(He smiled wryly.)"
-        }
+        { "append": true, "speaker": "Alice", "text": "Welcome to VNForge!" },
+        { "append": false, "speaker": "Alice", "text": "Let's build something great." },
+        { "color": "#66ccff", "speaker": "Bob", "text": "I'm in!" },
+        { "text": "They shook hands." }
       ]
     }
   ]
