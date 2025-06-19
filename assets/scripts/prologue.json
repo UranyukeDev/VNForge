@@ -1,0 +1,21 @@
+{
+  "scenes": [
+    {
+      "background": "easterneurope.png",
+      "lines": [
+        {
+          "speaker": "George",
+          "color": "#ffc000",
+          "text": "Well, I usually drink for business rather than pleasure."
+        },
+        {
+          "speaker": "George",
+          "text": "It's pretty hard to do business in Japan without it."
+        },
+        {
+          "text": "(He smiled wryly.)"
+        }
+      ]
+    }
+  ]
+}

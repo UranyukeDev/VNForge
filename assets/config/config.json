@@ -1,0 +1,6 @@
+{
+  "font"     : "fonts/Roboto-Medium.ttf",
+  "fontSize" : 20,
+  "nameColor": "#ffc000",
+  "textSpeed": 40
+}
