@@ -3,8 +3,9 @@
     {
       "background": "easterneurope.png",
       "lines": [
-        { "append": true, "speaker": "Alice", "text": "Welcome to VNForge!" },
-        { "append": false, "speaker": "Alice", "text": "Let's build something great." },
+        { "speaker": "Alice", "text": "Welcome to VNForge!" },
+        { "append": true, "speaker": "Alice", "text": "Let's build something great." },
+        { "append": true, "speaker": "Alice", "text": "Okay?" },
         { "color": "#66ccff", "speaker": "Bob", "text": "I'm in!" },
         { "text": "They shook hands." }
       ]

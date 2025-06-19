@@ -144,13 +144,6 @@ public class DialogueScreen extends ScreenAdapter {
             return;
         }
 
-        /* line finished — decide whether to append or clear */
-        if (ln.append) {
-            bufferText += ln.text + " ";
-        } else {
-            bufferText = "";
-        }
-
         /* move to next line / scene / main menu */
         lineIdx++;
         if (lineIdx >= sc.lines.size()) {
@@ -161,6 +154,13 @@ public class DialogueScreen extends ScreenAdapter {
             }
             loadScene();
         } else {
+            // Met à jour bufferText selon append de la prochaine ligne
+            Line nextLn = sc.lines.get(lineIdx);
+            if (nextLn.append) {
+                bufferText += ln.text + " ";
+            } else {
+                bufferText = "";
+            }
             elapsed = 0f;
             currentSegment = "";
         }
